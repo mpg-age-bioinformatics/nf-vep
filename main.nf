@@ -83,6 +83,11 @@ workflow images {
     get_images()
 }
 
+workflow cache {
+  main:
+    get_cache()
+}
+
 workflow {
   main:
     data = channel.fromFilePairs( "${params.vep_raw_data}/*.SNPs.nowt.vcf", size: -1 )
