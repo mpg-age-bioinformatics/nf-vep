@@ -71,7 +71,7 @@ process vep {
   script:
     """
     echo \$(pwd)
-    vep --cache -i /workdir/filter/${pair_id}.SNPs.nowt.vcf --species ${params.organism} --biotype --symbol --nearest transcript --tab \
+    vep --cache -i /workdir/filter/${pair_id}.SNPs.nowt.vcf --species ${params.organism} --biotype --symbol --nearest transcript \
     --dir_cache ${params.genomes}/${params.organism}/${params.release}/vep_cache/ --stats_file /workdir/filter/${pair_id}.protein -o /workdir/filter/${pair_id}.all_variants.vcf
 
     filter_vep -i /workdir/filter/${pair_id}.all_variants.vcf --filter "BIOTYPE is protein_coding" | filter_vep --filter "IMPACT is MODERATE" |  filter_vep --filter "IMPACT is HIGH" > /workdir/filter/${pair_id}.protein.vcf
