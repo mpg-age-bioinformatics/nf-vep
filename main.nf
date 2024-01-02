@@ -85,6 +85,7 @@ process merging {
   input:
     val pair_id
     val sample_table
+    val series
 
   script:
   """
@@ -144,6 +145,23 @@ process merging {
   """
 }
 
+process upload_paths {
+  stageInMode 'symlink'
+  stageOutMode 'move'
+
+  script:
+  """
+    rm -rf upload.txt
+
+    cd ${params.project_folder}/filter
+
+    for f in \$(ls *results.*) ; do echo "snp_out \$(readlink -f \${f})" >>  upload.txt_ ; done
+    
+    uniq upload.txt_ upload.txt 
+    rm upload.txt_
+  """
+}
+
 workflow images {
   main:
     get_images()
@@ -158,5 +176,10 @@ workflow {
   main:
     data = channel.fromFilePairs( "${params.vep_raw_data}/*.SNPs.nowt.vcf", size: -1 )
     vep( data )
-    merging( vep.out.collect(), params.samplestable )
+    merging( vep.out.collect(), params.samplestable, params.series )
+}
+
+workflow upload {
+  main:
+    upload_paths()
 }

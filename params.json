@@ -1,5 +1,6 @@
 {
     "wget" : "NONE",
+    "series" : "test_vc_pipe",
     "kallisto_raw_data" : "",
     "project_folder" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-vc-dev/", 
     "fastqc_raw_data" : "/nexus/posix0/MAGE-flaski/service/posit/home/aiqbal/nf-vc-dev/raw_data", 
