@@ -94,7 +94,7 @@ process merging {
     import pandas as pd
     import numpy as np
 
-    filterfolder="${filter}"
+    filterfolder="/workdir/filter/"
     sample_sheet="${samplestable}"
 
     samples = pd.read_excel(sample_sheet, sheet_name='samples', engine='openpyxl')
@@ -174,7 +174,7 @@ workflow cache {
 
 workflow {
   main:
-    data = channel.fromFilePairs( "${params.vep_raw_data}/*.SNPs.nowt.vcf", size: -1 )
+    data = channel.fromFilePairs( "${params.project_folder}/filter/*.SNPs.nowt.vcf", size: -1 )
     vep( data )
     merging( vep.out.collect(), params.samplestable, params.series )
 }
