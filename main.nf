@@ -65,7 +65,7 @@ process vep {
     val pair_id
 
   when:
-    ( ! file("${params.vep_raw_data}/${pair_id}.protein.vcf").exists() ) 
+    ( ! file("${params.project_folder}/filter/${pair_id}.protein.vcf").exists() ) 
 
   
   script:
@@ -95,7 +95,7 @@ process merging {
     import numpy as np
 
     filterfolder="/workdir/filter/"
-    sample_sheet="${samplestable}"
+    sample_sheet="${sample_table}"
 
     samples = pd.read_excel(sample_sheet, sheet_name='samples', engine='openpyxl')
     samples['SampleID'] = samples['Group'] + '.Rep_' + samples['Replicate'].astype(str)
@@ -123,7 +123,7 @@ process merging {
       DF.columns=['sampleID', "chrom","pos","REF","ALT",'QUAL',"sums","smaller alternative al.","freq. (smaller alternative al.) (%)", "Gene",\
                   "SYMBOL", "Consequence", "IMPACT","Feature_type", "Feature", "BIOTYPE","ANN", 'sampleName']
       DF.to_excel(filterfolder + sample_dict[sample['Sample']] + ".results.xlsx", index = False)
-      DF.to_csv(filterfolder + sample_dict[sample['Sample']] + ".results.tsv", index = False, sep = '\t')
+      DF.to_csv(filterfolder + sample_dict[sample['Sample']] + ".results.tsv", index = False, sep = '\\t')
       return(DF)
 
     # annotate all samples and merge all samples except wt
@@ -131,16 +131,16 @@ process merging {
     for index, sample in samples.iterrows():
         print(sample['Sample'])
         if not sample['Sample'] in samples["Background Sample"].tolist():
-            tmp = pd.read_csv(filterfolder + sample_dict[sample['Sample']] + ".protein.vcf", sep = '\t', header= None)
+            tmp = pd.read_csv(filterfolder + sample_dict[sample['Sample']] + ".protein.vcf", sep = '\\t', header= None, comment="#")
             TMP = ANNOTATE(tmp, sample_dict[sample['Sample']], sample['Group'])
             merged_results = merged_results.append(TMP, ignore_index= True)
         else:
-            tmp = pd.read_csv(filterfolder + sample_dict[sample['Sample']] + ".protein.vcf", sep = '\t', header= None)
+            tmp = pd.read_csv(filterfolder + sample_dict[sample['Sample']] + ".protein.vcf", sep = '\\t', header= None, comment="#")
             TMP = ANNOTATE(tmp, sample_dict[sample['Sample']], sample['Group'])
       
     # save master table
     merged_results.to_excel(filterfolder + "${series}.merged_results.xlsx", index = False)
-    merged_results.to_csv(filterfolder + "${series}.merged_results.tsv", sep= '\t', index= False)
+    merged_results.to_csv(filterfolder + "${series}.merged_results.tsv", sep= '\\t', index= False)
 
   """
 }
