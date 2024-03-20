@@ -83,9 +83,11 @@ process merging {
   stageOutMode 'move'
 
   input:
-    val pair_id
     val sample_table
     val series
+
+  when:
+    ( ! file("${params.project_folder}/filter/${series}.merged_results.tsv").exists() ) 
 
   script:
   """
@@ -131,12 +133,20 @@ process merging {
     for index, sample in samples.iterrows():
         print(sample['Sample'])
         if not sample['Sample'] in samples["Background Sample"].tolist():
-            tmp = pd.read_csv(filterfolder + sample_dict[sample['Sample']] + ".protein.vcf", sep = '\\t', header= None, comment="#")
-            TMP = ANNOTATE(tmp, sample_dict[sample['Sample']], sample['Group'])
-            merged_results = merged_results.append(TMP, ignore_index= True)
+            try:
+              tmp = pd.read_csv(filterfolder + sample_dict[sample['Sample']] + ".protein.vcf", sep = '\\t', header= None, comment="#")
+              TMP = ANNOTATE(tmp, sample_dict[sample['Sample']], sample['Group'])
+              merged_results = merged_results.append(TMP, ignore_index= True)
+            except pd.errors.EmptyDataError:
+              print(f"EmptyDataError: Skipping {sample} as it contains no data.")
+              continue
         else:
-            tmp = pd.read_csv(filterfolder + sample_dict[sample['Sample']] + ".protein.vcf", sep = '\\t', header= None, comment="#")
-            TMP = ANNOTATE(tmp, sample_dict[sample['Sample']], sample['Group'])
+            try:
+              tmp = pd.read_csv(filterfolder + sample_dict[sample['Sample']] + ".protein.vcf", sep = '\\t', header= None, comment="#")
+              TMP = ANNOTATE(tmp, sample_dict[sample['Sample']], sample['Group'])
+            except pd.errors.EmptyDataError:
+              print(f"EmptyDataError: Skipping {sample} as it contains no data.")
+              continue
       
     # save master table
     merged_results.to_excel(filterfolder + "${series}.merged_results.xlsx", index = False)
@@ -172,11 +182,15 @@ workflow cache {
     get_cache()
 }
 
-workflow {
+workflow annotate {
   main:
     data = channel.fromFilePairs( "${params.project_folder}/filter/*.SNPs.nowt.vcf", size: -1 )
     vep( data )
-    merging( vep.out.collect(), params.samplestable, params.series )
+}
+
+workflow merge {
+  main:
+    merging( params.samplestable, params.series )
 }
 
 workflow upload {
